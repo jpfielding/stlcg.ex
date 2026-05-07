@@ -1,0 +1,35 @@
+# NOTICE
+
+`stlcg.ex` is an independent Elixir port of the PyTorch library
+**STLCG** by Stanford Autonomous Systems Lab (ASL).
+
+## Upstream
+
+- Source:   https://github.com/StanfordASL/stlcg
+- Pinned:   abd16c92108f1b57a72d66c58492c949b6c5a8ea (HEAD at port time)
+- License:  MIT
+
+## Upstream citation
+
+If you use this port in academic work, please also cite the upstream paper:
+
+> Leung, Karen et al. "Back-propagation through Signal Temporal Logic
+> Specifications: Infusing Logical Structure into Gradient-Based Methods."
+> *The International Journal of Robotics Research* (2023).
+
+```
+@article{leung2023back,
+  author    = {Karen Leung and Nikos Arechiga and Marco Pavone},
+  title     = {Back-propagation through Signal Temporal Logic Specifications:
+               Infusing Logical Structure into Gradient-Based Methods},
+  journal   = {The International Journal of Robotics Research},
+  year      = {2023}
+}
+```
+
+## Relationship to upstream
+
+This port re-implements STLCG from scratch in idiomatic Elixir using
+`Nx` and `Nx.Defn`. No Python source is redistributed; semantics are
+mirrored and verified via numerical parity fixtures generated from the
+pinned upstream SHA (see `scripts/bootstrap_fixtures.sh`).
