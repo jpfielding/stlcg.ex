@@ -120,8 +120,10 @@ Because `robustness/3` itself is plain Elixir (walking the struct tree), the *co
 **Phase 0 spike (gate before any operator implementation)**: build *one* minimal nested formula (`Always(x <= c)`) using two kernels (predicate + temporal), compose via the above pattern, run `Nx.Defn.grad` on `c`, and compare against finite differences. If that does not produce a single differentiable graph, revisit the architecture before building out the operator set. `autodiff_test.exs` verifies each operator's gradient against finite differences (tolerance `1e-4` for float32, `1e-8` for float64).
 
 **Vectors 2 and 7 (resolved, noted for implementation)**:
-- `Nx.Defn.Kernel.while` + preallocated `output_acc` + `Nx.put_slice` with loop-variable `t` is supported — slice lengths must be compile-time integers but slice starts may be scalar tensors.
+- `Nx.Defn.Kernel.while` + preallocated `output_acc` + `Nx.put_slice` with loop-variable `t`: slice lengths must be compile-time integers. See Phase 0.5 note below — gradient-through-`put_slice` with loop-variable start index is *not* reliable in Nx 0.11.0.
 - `sum(x * mask) / sum(mask)` with `mask = stop_grad(x == reduce_max(x))` correctly distributes gradient across tied entries; a tied-max gradient fixture pins this behavior.
+
+**Phase 0.5 spike outcome (landed 2026-05-07)**: architecture composes — plain-Elixir walker + per-operator `defn` kernels produce a single differentiable graph. `Nx.Defn.grad` wrt both `c` and `x` agrees with finite-difference on `Always(x < c)`. **Implementation note for ticket #8**: the pattern `while + Nx.put_slice(out, [0, k, 0], ...)` with loop-variable `k` broke gradient flow (grad=0) during spike development. For `interval = nil`, use `Nx.cumulative_min/max`. For `{a, b}` bounded intervals, prefer building the output via `Nx.concatenate` over a reduce (not in-place `put_slice`), OR verify grad-through-`put_slice` on a narrow test before committing the full implementation.
 
 ### DSL sugar
 
