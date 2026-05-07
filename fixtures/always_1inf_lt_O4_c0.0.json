@@ -1,0 +1,82 @@
+{
+  "backend": "pytorch-cpu-fp32",
+  "dtype": "f32",
+  "expected_robustness": {
+    "data": [
+      -0.4000000059604645
+    ],
+    "shape": [
+      1,
+      1,
+      1
+    ]
+  },
+  "expected_trace": {
+    "data": [
+      0.20000000298023224,
+      0.20000000298023224,
+      0.10000000149011612,
+      0.0,
+      -0.10000000149011612,
+      -0.20000000298023224,
+      -0.30000001192092896,
+      -0.4000000059604645
+    ],
+    "shape": [
+      1,
+      8,
+      1
+    ]
+  },
+  "formula_ast": {
+    "interval": {
+      "hi": "infinity",
+      "lo": 1
+    },
+    "op": "Always",
+    "subformula": {
+      "lhs": "x",
+      "op": "LessThan",
+      "val": 0.0
+    }
+  },
+  "formula_id": "always_1inf_lt_O4_c0.0",
+  "inputs": {
+    "x": {
+      "data": [
+        -0.20000000298023224,
+        -0.10000000149011612,
+        0.0,
+        0.10000000149011612,
+        0.20000000298023224,
+        0.30000001192092896,
+        0.4000000059604645,
+        0.5
+      ],
+      "shape": [
+        1,
+        8,
+        1
+      ]
+    }
+  },
+  "meta": {
+    "aggregation_modes": [
+      "hard"
+    ],
+    "depth": 2,
+    "interval": "[1, inf]",
+    "oracle": "O4",
+    "regime": "hard_f32"
+  },
+  "opts": {
+    "agm": false,
+    "distributed": false,
+    "pscale": 1.0,
+    "scale": -1.0
+  },
+  "required_operators": [
+    "always",
+    "less_than"
+  ]
+}

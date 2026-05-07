@@ -175,6 +175,89 @@ def fx_predicate_equal(oracle_id: str, x: np.ndarray, c: float) -> Dict[str, Any
     }
 
 
+def _ast_less_than(c: float) -> Dict[str, Any]:
+    return {"op": "LessThan", "lhs": "x", "val": float(c)}
+
+
+def fx_always(oracle_id: str, x: np.ndarray, c: float, interval) -> Dict[str, Any]:
+    """Always(LessThan(x, c)) with the given interval."""
+    xt = torch.tensor(x, requires_grad=False)
+    ct = torch.tensor(c, dtype=torch.float32, requires_grad=False)
+    sub = stlcg.LessThan(lhs="x", val=ct)
+    formula = stlcg.Always(subformula=sub, interval=interval)
+    trace, rob = _evaluate(formula, xt)
+
+    interval_ast, interval_id = _interval_ast(interval)
+
+    return {
+        "formula_id": f"always_{interval_id}_lt_{oracle_id}_c{c}",
+        "formula_ast": {
+            "op": "Always",
+            "interval": interval_ast,
+            "subformula": _ast_less_than(c),
+        },
+        "required_operators": ["always", "less_than"],
+        "inputs": {"x": _np_json(x)},
+        "opts": {"pscale": 1.0, "scale": -1.0, "agm": False, "distributed": False},
+        "dtype": "f32",
+        "backend": "pytorch-cpu-fp32",
+        "expected_trace": _tensor_json(trace),
+        "expected_robustness": _tensor_json(rob),
+        "meta": {
+            "depth": 2,
+            "aggregation_modes": ["hard"],
+            "regime": "hard_f32",
+            "oracle": oracle_id,
+            "interval": str(interval),
+        },
+    }
+
+
+def fx_eventually(oracle_id: str, x: np.ndarray, c: float, interval) -> Dict[str, Any]:
+    """Eventually(LessThan(x, c)) with the given interval."""
+    xt = torch.tensor(x, requires_grad=False)
+    ct = torch.tensor(c, dtype=torch.float32, requires_grad=False)
+    sub = stlcg.LessThan(lhs="x", val=ct)
+    formula = stlcg.Eventually(subformula=sub, interval=interval)
+    trace, rob = _evaluate(formula, xt)
+
+    interval_ast, interval_id = _interval_ast(interval)
+
+    return {
+        "formula_id": f"eventually_{interval_id}_lt_{oracle_id}_c{c}",
+        "formula_ast": {
+            "op": "Eventually",
+            "interval": interval_ast,
+            "subformula": _ast_less_than(c),
+        },
+        "required_operators": ["eventually", "less_than"],
+        "inputs": {"x": _np_json(x)},
+        "opts": {"pscale": 1.0, "scale": -1.0, "agm": False, "distributed": False},
+        "dtype": "f32",
+        "backend": "pytorch-cpu-fp32",
+        "expected_trace": _tensor_json(trace),
+        "expected_robustness": _tensor_json(rob),
+        "meta": {
+            "depth": 2,
+            "aggregation_modes": ["hard"],
+            "regime": "hard_f32",
+            "oracle": oracle_id,
+            "interval": str(interval),
+        },
+    }
+
+
+def _interval_ast(interval):
+    """Return (ast-json, short-id) for an interval spec."""
+    if interval is None:
+        return None, "nil"
+
+    lo, hi = interval
+    if hi == float("inf") or (isinstance(hi, float) and hi != hi):  # inf or nan guard
+        return {"lo": int(lo), "hi": "infinity"}, f"{int(lo)}inf"
+    return {"lo": int(lo), "hi": int(hi)}, f"{int(lo)}_{int(hi)}"
+
+
 def build_all_fixtures() -> List[Dict[str, Any]]:
     """Return a list of fixture dicts covering the initial operator set."""
     fixtures: List[Dict[str, Any]] = []
@@ -186,9 +269,22 @@ def build_all_fixtures() -> List[Dict[str, Any]]:
         fixtures.append(fx_predicate_equal(oracle_id, trace, 0.0))
 
     # Extra predicate thresholds to stress sign/magnitude.
-    fixtures.append(fx_predicate_less_than("O3", ORACLES["O3"], 1.0))   # tight: trace == c
-    fixtures.append(fx_predicate_less_than("O4", ORACLES["O4"], 0.5))   # equal at endpoint
+    fixtures.append(fx_predicate_less_than("O3", ORACLES["O3"], 1.0))
+    fixtures.append(fx_predicate_less_than("O4", ORACLES["O4"], 0.5))
     fixtures.append(fx_predicate_greater_than("O3", ORACLES["O3"], 0.5))
+
+    # Always / Eventually across each interval kind on O2/O4/O5.
+    interval_cases = [
+        None,
+        [1, 2],
+        [2, 3],
+        [1, float("inf")],
+        [2, float("inf")],
+    ]
+    for oracle_id in ("O2", "O4", "O5"):
+        for interval in interval_cases:
+            fixtures.append(fx_always(oracle_id, ORACLES[oracle_id], 0.0, interval))
+            fixtures.append(fx_eventually(oracle_id, ORACLES[oracle_id], 0.0, interval))
 
     return fixtures
 

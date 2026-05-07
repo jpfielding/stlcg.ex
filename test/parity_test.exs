@@ -25,7 +25,15 @@ defmodule STLCG.ParityTest do
                  :less_than,
                  :greater_than,
                  :equal,
-                 :identity
+                 :identity,
+                 # wave-2:
+                 :and,
+                 :or,
+                 :not,
+                 :implies,
+                 # wave-3:
+                 :always,
+                 :eventually
                ])
 
   setup_all do

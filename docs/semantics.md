@@ -79,30 +79,33 @@ a scalar threshold. `pscale` is an optional positive scalar (default `1.0`).
 
 ## 5. Temporal operators
 
-All temporal operators share the reverse-time dynamic-programming shape:
-the output at time `t` depends on the suffix `trace[t..time-1]`, where
-aggregation runs over the relevant *future* window.
+All temporal operators look into the **past**: the output at position
+`t` aggregates predicate values from the window `[t - b, t - a]`
+(indices into the predicate trace). Any index `< 0` is replaced by the
+**first predicate value** `ρϕ(0)` — this matches upstream's RNN-cell
+initialization (`_initialize_rnn_cell` broadcasts the first input
+value across the buffer). Contract re-derived from upstream parity
+fixtures; see `src/stlcg.py`.
 
 ### 5.1 `Always(ϕ, interval)` — `□_I ϕ`
 
-For each time `t`, aggregate `ρϕ` over `{t + i : i ∈ I ∩ valid}` with `min`:
-
 ```
-ρ_□(t) = min_{i ∈ I, t + i < time}  ρϕ(t + i)
+ρ_□(t) = min_{i ∈ [t-b, t-a]}  ρ'ϕ(i)
+    where ρ'ϕ(i) = ρϕ(i)       for i ≥ 0
+                   ρϕ(0)       for i < 0
 ```
 
-Windows that fall entirely outside `[t, time - 1]` are filled with
-`+∞` before the min (so a short trace near its end still produces a
-defined value — matching upstream's masking behavior). See §8 for edge
-cases.
+- `interval = nil` ≡ `[0, ∞)` ≡ cumulative min on the raw trace:
+  `ρ_□(t) = min(ρϕ[0..t])`.
+- `interval = {a, :infinity}`: left-pad by `a` copies of `ρϕ(0)`, take
+  cumulative min, slice to original length.
+- `interval = {a, b}`: left-pad by `b` copies of `ρϕ(0)`, apply a
+  sliding-window min of size `b - a + 1`, slice to original length.
 
 ### 5.2 `Eventually(ϕ, interval)` — `◇_I ϕ`
 
-Mirror of Always with `max` and empty-window fill `-∞`:
-
-```
-ρ_◇(t) = max_{i ∈ I, t + i < time}  ρϕ(t + i)
-```
+Mirror of Always with `max` in place of `min` and `cumulative_max`/
+`window_max` replacing their min counterparts.
 
 ### 5.3 `Until(ϕ, ψ, interval, overlap)` — `ϕ U_I ψ`
 

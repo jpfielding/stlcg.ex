@@ -203,7 +203,19 @@ defmodule STLCG.Fixtures do
     %STLCG.Identity{name: name}
   end
 
+  def build_formula(%{"op" => "Always", "interval" => i, "subformula" => sub}) do
+    %STLCG.Always{interval: interval(i), subformula: build_formula(sub)}
+  end
+
+  def build_formula(%{"op" => "Eventually", "interval" => i, "subformula" => sub}) do
+    %STLCG.Eventually{interval: interval(i), subformula: build_formula(sub)}
+  end
+
   def build_formula(%{"op" => op}) do
     raise UnsupportedOperator, op: op
   end
+
+  defp interval(nil), do: nil
+  defp interval(%{"lo" => lo, "hi" => "infinity"}), do: {lo, :infinity}
+  defp interval(%{"lo" => lo, "hi" => hi}) when is_integer(hi), do: {lo, hi}
 end
