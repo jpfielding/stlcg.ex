@@ -69,9 +69,42 @@ defmodule STLCG.MixProject do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md", "docs/semantics.md", "NOTICE"],
+      extras: [
+        "README.md",
+        "PLAN.md",
+        "docs/semantics.md",
+        "NOTICE",
+        "LICENSE"
+      ],
+      groups_for_extras: [
+        Guides: ["README.md", "docs/semantics.md"],
+        Project: ["PLAN.md", "NOTICE", "LICENSE"]
+      ],
       source_ref: "v#{@version}",
-      formatters: ["html"]
+      formatters: ["html"],
+      groups_for_modules: [
+        "Public API": [STLCG, STLCG.DSL, STLCG.Expression, STLCG.Formula],
+        Predicates: [
+          STLCG.LessThan,
+          STLCG.GreaterThan,
+          STLCG.Equal,
+          STLCG.Identity,
+          STLCG.Predicates
+        ],
+        Logical: [STLCG.And, STLCG.Or, STLCG.Not, STLCG.Implies, STLCG.Logical],
+        Temporal: [
+          STLCG.Always,
+          STLCG.Eventually,
+          STLCG.Until,
+          STLCG.Then,
+          STLCG.Integral1d,
+          STLCG.Temporal,
+          STLCG.UntilThen,
+          STLCG.Integral
+        ],
+        Aggregation: [STLCG.Aggregation],
+        "Testing & fixtures": [STLCG.Fixtures]
+      ]
     ]
   end
 end

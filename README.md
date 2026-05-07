@@ -1,5 +1,7 @@
 # stlcg.ex
 
+[![CI](https://github.com/jpfielding/stlcg.ex/actions/workflows/ci.yml/badge.svg)](https://github.com/jpfielding/stlcg.ex/actions/workflows/ci.yml)
+
 An idiomatic Elixir port of Stanford ASL's
 [stlcg](https://github.com/StanfordASL/stlcg) — a toolbox for computing the
 **robustness of Signal Temporal Logic (STL) formulas** as differentiable
@@ -9,9 +11,10 @@ Built on [`Nx`](https://hex.pm/packages/nx) + `Nx.Defn`, so STL robustness
 can be plugged straight into gradient-based learning loops: every operator
 backpropagates.
 
-> Status: **v0.1.0 in progress.** See [PLAN.md](PLAN.md) for the full
-> implementation plan and [docs/semantics.md](docs/semantics.md) for the
-> semantic contract this port commits to.
+> **Status:** v0.1.0 — all operators implemented and parity-validated
+> against 60 JSON fixtures generated from upstream at pinned SHA
+> `abd16c92`. See [PLAN.md](PLAN.md) for the implementation plan and
+> [docs/semantics.md](docs/semantics.md) for the semantic contract.
 
 ## What is STL robustness?
 

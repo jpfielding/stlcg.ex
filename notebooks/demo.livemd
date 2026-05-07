@@ -1,0 +1,146 @@
+# stlcg.ex — Demo
+
+```elixir
+Mix.install([
+  {:stlcg, path: Path.expand("..", __DIR__)},
+  {:kino, "~> 0.14"}
+])
+```
+
+## What is STL robustness?
+
+Given a signal trace `x` and an STL formula `ϕ`, the **robustness**
+`ρ(ϕ, x)` is a real number: its sign tells us whether the trace
+satisfies the formula, and its magnitude tells us the margin of
+satisfaction. Because `ρ` is differentiable, it can be used as a loss
+term in gradient-based training.
+
+This demo mirrors the upstream
+[`stlcg` demo.ipynb](https://github.com/StanfordASL/stlcg/blob/master/demo.ipynb).
+
+## Inputs
+
+```elixir
+import Nx.Defn
+import STLCG.DSL
+
+t_axis = Nx.iota({30}) |> Nx.as_type(:f64) |> Nx.divide(5) |> Nx.subtract(3)
+
+# Two Gaussian-shaped signals centered at different times.
+x_tensor =
+  t_axis
+  |> Nx.pow(2)
+  |> Nx.negate()
+  |> Nx.exp()
+  |> Nx.multiply(0.5)
+  |> Nx.reshape({1, 30, 1})
+
+w_tensor =
+  [
+    Nx.add(t_axis, 0.5) |> Nx.pow(2) |> Nx.negate() |> Nx.exp() |> Nx.multiply(0.4),
+    Nx.subtract(t_axis, 3.0) |> Nx.pow(2) |> Nx.negate() |> Nx.exp() |> Nx.multiply(0.2)
+  ]
+  |> Enum.reduce(&Nx.add/2)
+  |> Nx.reshape({1, 30, 1})
+
+x = expr("x", x_tensor)
+w = expr("w", w_tensor)
+c = expr("c", 1.0)
+d = expr("d", 0.9)
+
+{x_tensor |> Nx.to_flat_list() |> Enum.map(&Float.round(&1, 3)) |> Enum.take(10),
+ w_tensor |> Nx.to_flat_list() |> Enum.map(&Float.round(&1, 3)) |> Enum.take(10)}
+```
+
+## A simple formula
+
+`always(x <= c)  AND  always(w <= d)` — both signals must stay below
+their thresholds for the entire trace.
+
+```elixir
+phi = always(x <~ c)
+psi = always(w <~ d)
+
+formula = phi &&& psi
+```
+
+## Compute the robustness
+
+```elixir
+inputs = %{"x" => x, "w" => w, "c" => c, "d" => d}
+
+rob = STLCG.robustness(formula, inputs)
+IO.puts("robustness at terminal time: #{inspect(Nx.to_flat_list(rob))}")
+```
+
+## Gradient-based threshold tuning
+
+The core value proposition of STLCG: use gradients to *find* a
+threshold that makes a signal satisfy the formula.
+
+For example, suppose we want the formula `always(x <= c)` to be
+satisfied with maximum margin, but we only control `c`. We can
+descend on the negative robustness to tighten `c` around `max(x)`.
+
+```elixir
+formula2 = always(x <~ c)
+
+grad_c = fn c_val ->
+  inp = %{"x" => x, "c" => c_val}
+  STLCG.robustness(formula2, inp) |> Nx.sum()
+end
+
+c0 = Nx.tensor(0.0, type: :f64)
+Nx.Defn.grad(c0, grad_c)
+```
+
+```elixir
+# Simple gradient descent on c (minimizing -robustness, i.e. maximizing robustness).
+learning_rate = 0.1
+
+final_c =
+  Enum.reduce(1..50, Nx.tensor(0.0, type: :f64), fn _, c_cur ->
+    grad = Nx.Defn.grad(c_cur, grad_c)
+    Nx.subtract(c_cur, Nx.multiply(grad, learning_rate))
+  end)
+
+IO.puts("final c ≈ #{Nx.to_number(final_c) |> Float.round(4)}  (max(x) = #{x_tensor |> Nx.reduce_max() |> Nx.to_number() |> Float.round(4)})")
+```
+
+## Temporal operators with intervals
+
+```elixir
+# Within the next 5 steps, x is always below 0.3.
+f = always({0, 4}, x <~ 0.3)
+
+trace = STLCG.robustness_trace(f, %{"x" => x})
+
+trace |> Nx.to_flat_list() |> Enum.map(&Float.round(&1, 3))
+```
+
+## Until
+
+```elixir
+# "x < 0.5 UNTIL w > 0.3" — x eventually becomes large, but only after w has.
+f = until(x <~ 0.5, w ~> 0.3)
+
+trace = STLCG.robustness_trace(f, %{"x" => x, "w" => w})
+
+trace |> Nx.to_flat_list() |> Enum.map(&Float.round(&1, 3))
+```
+
+## Soft max (differentiable everywhere)
+
+By default `STLCG.robustness/3` uses true min/max (non-smooth). For
+gradient-friendly smooth approximations, pass `scale: positive`:
+
+```elixir
+formula = always(x <~ c)
+
+# true max: gradient concentrated on argmax
+STLCG.robustness(formula, inputs, scale: -1.0) |> Nx.to_flat_list()
+```
+
+This demo only scratches the surface — see the upstream paper
+(*Leung et al., IJRR 2023*) for examples involving trajectory
+optimization, adversarial training, and policy synthesis.
