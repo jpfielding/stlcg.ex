@@ -1,5 +1,5 @@
 {
-  "count": 48,
+  "count": 60,
   "fixtures": [
     "always_1_2_lt_O2_c0.0",
     "always_1_2_lt_O4_c0.0",
@@ -48,7 +48,19 @@
     "less_than_O3_c1.0",
     "less_than_O4_c0.0",
     "less_than_O4_c0.5",
-    "less_than_O5_c0.0"
+    "less_than_O5_c0.0",
+    "then_1_2_O5O5b",
+    "then_1_2_O5bO5",
+    "then_1inf_O5O5b",
+    "then_1inf_O5bO5",
+    "then_nil_O5O5b",
+    "then_nil_O5bO5",
+    "until_1_2_O5O5b",
+    "until_1_2_O5bO5",
+    "until_1inf_O5O5b",
+    "until_1inf_O5bO5",
+    "until_nil_O5O5b",
+    "until_nil_O5bO5"
   ],
   "generated_from": "StanfordASL/stlcg@abd16c92108f1b57a72d66c58492c949b6c5a8ea"
 }

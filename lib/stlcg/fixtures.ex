@@ -211,6 +211,26 @@ defmodule STLCG.Fixtures do
     %STLCG.Eventually{interval: interval(i), subformula: build_formula(sub)}
   end
 
+  def build_formula(%{"op" => "Until", "interval" => i, "lhs" => lhs, "rhs" => rhs}) do
+    %STLCG.Until{
+      interval: interval(i),
+      lhs: build_formula(lhs),
+      rhs: build_formula(rhs)
+    }
+  end
+
+  def build_formula(%{"op" => "Then", "interval" => i, "lhs" => lhs, "rhs" => rhs}) do
+    %STLCG.Then{
+      interval: interval(i),
+      lhs: build_formula(lhs),
+      rhs: build_formula(rhs)
+    }
+  end
+
+  def build_formula(%{"op" => "Integral1d", "interval" => i, "subformula" => sub}) do
+    %STLCG.Integral1d{interval: interval(i), subformula: build_formula(sub)}
+  end
+
   def build_formula(%{"op" => op}) do
     raise UnsupportedOperator, op: op
   end

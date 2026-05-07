@@ -286,6 +286,107 @@ def build_all_fixtures() -> List[Dict[str, Any]]:
             fixtures.append(fx_always(oracle_id, ORACLES[oracle_id], 0.0, interval))
             fixtures.append(fx_eventually(oracle_id, ORACLES[oracle_id], 0.0, interval))
 
+    # Until / Then on same-length oracle pairs. Integral1d is validated
+    # via analytic tests in Elixir — upstream's torch-conv-based impl
+    # crashes on modern torch and is not a reliable oracle.
+    fixtures.extend(build_until_then_fixtures())
+
+    return fixtures
+
+
+def build_until_then_fixtures() -> List[Dict[str, Any]]:
+    """Until(phi, psi) and Then(phi, psi) on a pair of oracle traces."""
+    # (phi_signal, psi_signal, pair_id) — both must be same length.
+    # O5 is length 5; build a second length-5 signal to pair with it.
+    O5b = np.array([[[0.4], [-0.2], [0.1], [0.3], [-0.1]]], dtype=np.float32)
+    pairs = [
+        (ORACLES["O5"], O5b, "O5O5b"),
+        (O5b, ORACLES["O5"], "O5bO5"),
+    ]
+
+    fixtures = []
+    for x, y, pair_id in pairs:
+        xt = torch.tensor(x, requires_grad=False)
+        yt = torch.tensor(y, requires_grad=False)
+        c0 = torch.tensor(0.0)
+
+        phi = stlcg.LessThan(lhs="x", val=c0)
+        psi = stlcg.GreaterThan(lhs="y", val=c0)
+
+        for interval in [None, [1, 2], [1, float("inf")]]:
+            interval_ast, interval_id = _interval_ast(interval)
+
+            for op_name, OpClass, tag in (
+                ("Until", stlcg.Until, "until"),
+                ("Then", stlcg.Then, "then"),
+            ):
+                f = OpClass(subformula1=phi, subformula2=psi, interval=interval)
+                trace, rob = _evaluate(f, (xt, yt))
+
+                fixtures.append({
+                    "formula_id": f"{op_name.lower()}_{interval_id}_{pair_id}",
+                    "formula_ast": {
+                        "op": op_name,
+                        "interval": interval_ast,
+                        "lhs": _ast_less_than(0.0),
+                        "rhs": {"op": "GreaterThan", "lhs": "y", "val": 0.0},
+                    },
+                    "required_operators": [tag, "less_than", "greater_than"],
+                    "inputs": {"x": _np_json(x), "y": _np_json(y)},
+                    "opts": {"pscale": 1.0, "scale": -1.0, "agm": False, "distributed": False},
+                    "dtype": "f32",
+                    "backend": "pytorch-cpu-fp32",
+                    "expected_trace": _tensor_json(trace),
+                    "expected_robustness": _tensor_json(rob),
+                    "meta": {
+                        "depth": 3,
+                        "aggregation_modes": ["hard"],
+                        "regime": "hard_f32",
+                        "pair": pair_id,
+                        "interval": str(interval),
+                    },
+                })
+
+    return fixtures
+
+
+def build_integral_fixtures() -> List[Dict[str, Any]]:
+    fixtures = []
+
+    for oracle_id in ("O4", "O5"):
+        x = ORACLES[oracle_id]
+        xt = torch.tensor(x, requires_grad=False)
+        c0 = torch.tensor(0.0)
+        phi = stlcg.LessThan(lhs="x", val=c0)
+
+        for interval in [None, [1, 2], [1, float("inf")]]:
+            interval_ast, interval_id = _interval_ast(interval)
+            f = stlcg.Integral1d(subformula=phi, interval=interval)
+            trace, rob = _evaluate(f, xt)
+
+            fixtures.append({
+                "formula_id": f"integral_{interval_id}_{oracle_id}",
+                "formula_ast": {
+                    "op": "Integral1d",
+                    "interval": interval_ast,
+                    "subformula": _ast_less_than(0.0),
+                },
+                "required_operators": ["integral1d", "less_than"],
+                "inputs": {"x": _np_json(x)},
+                "opts": {"pscale": 1.0, "scale": -1.0, "agm": False, "distributed": False},
+                "dtype": "f32",
+                "backend": "pytorch-cpu-fp32",
+                "expected_trace": _tensor_json(trace),
+                "expected_robustness": _tensor_json(rob),
+                "meta": {
+                    "depth": 2,
+                    "aggregation_modes": ["hard"],
+                    "regime": "hard_f32",
+                    "oracle": oracle_id,
+                    "interval": str(interval),
+                },
+            })
+
     return fixtures
 
 

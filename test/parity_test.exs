@@ -33,7 +33,10 @@ defmodule STLCG.ParityTest do
                  :implies,
                  # wave-3:
                  :always,
-                 :eventually
+                 :eventually,
+                 :until,
+                 :then,
+                 :integral1d
                ])
 
   setup_all do
