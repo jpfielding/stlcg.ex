@@ -18,6 +18,8 @@ defmodule STLCG.Spike.LessThan do
   end
 
   defimpl STLCG.Formula do
+    alias STLCG.Spike.LessThan
+
     def robustness_trace(%{lhs: lhs, val: val}, [], opts) do
       inputs = Keyword.fetch!(opts, :inputs)
       pscale = Keyword.fetch!(opts, :pscale)
@@ -25,7 +27,7 @@ defmodule STLCG.Spike.LessThan do
       x = fetch_tensor(inputs, lhs)
       c = fetch_tensor(inputs, val)
 
-      STLCG.Spike.LessThan.kernel(x, c, pscale: pscale)
+      LessThan.kernel(x, c, pscale: pscale)
     end
 
     def subformulas(_), do: []
@@ -65,7 +67,9 @@ defmodule STLCG.Spike.Always do
   end
 
   defimpl STLCG.Formula do
-    def robustness_trace(%{}, [sub_trace], _opts), do: STLCG.Spike.Always.kernel(sub_trace)
+    alias STLCG.Spike.Always
+
+    def robustness_trace(%{}, [sub_trace], _opts), do: Always.kernel(sub_trace)
     def subformulas(%{subformula: s}), do: [s]
     def operator_tag(_), do: :spike_always
   end

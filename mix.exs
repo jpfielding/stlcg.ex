@@ -71,14 +71,14 @@ defmodule STLCG.MixProject do
       main: "readme",
       extras: [
         "README.md",
-        "PLAN.md",
         "docs/semantics.md",
+        "CHANGELOG.md",
         "NOTICE",
         "LICENSE"
       ],
       groups_for_extras: [
         Guides: ["README.md", "docs/semantics.md"],
-        Project: ["PLAN.md", "NOTICE", "LICENSE"]
+        Project: ["CHANGELOG.md", "NOTICE", "LICENSE"]
       ],
       source_ref: "v#{@version}",
       formatters: ["html"],

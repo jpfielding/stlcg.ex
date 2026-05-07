@@ -19,7 +19,7 @@ defmodule STLCG.Fixtures do
 
   @fixture_dir "fixtures"
 
-  # --- Tolerance matrix (PLAN.md §Parity fixtures) ---------------------
+  # --- Tolerance matrix (docs/semantics.md §Parity) --------------------
 
   @tolerances %{
     "hard_f32" => {1.0e-6, 1.0e-7},

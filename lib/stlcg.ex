@@ -4,8 +4,8 @@ defmodule STLCG do
   computing the robustness of **Signal Temporal Logic (STL)** formulas as
   differentiable computation graphs, built on `Nx` + `Nx.Defn`.
 
-  See `PLAN.md` at the repository root for the implementation plan and
-  `docs/semantics.md` for the full semantic contract.
+  See `docs/semantics.md` for the full semantic contract and
+  `CHANGELOG.md` for release notes.
 
   ## Public API
 

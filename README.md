@@ -13,8 +13,9 @@ backpropagates.
 
 > **Status:** v0.1.0 — all operators implemented and parity-validated
 > against 60 JSON fixtures generated from upstream at pinned SHA
-> `abd16c92`. See [PLAN.md](PLAN.md) for the implementation plan and
-> [docs/semantics.md](docs/semantics.md) for the semantic contract.
+> [`abd16c92`](https://github.com/StanfordASL/stlcg/commit/abd16c92108f1b57a72d66c58492c949b6c5a8ea).
+> See [`docs/semantics.md`](docs/semantics.md) for the semantic contract
+> and [`CHANGELOG.md`](CHANGELOG.md) for release notes.
 
 ## What is STL robustness?
 
@@ -52,8 +53,22 @@ STLCG.robustness(formula, %{x: x, c: c})
 
 ## Status & roadmap
 
-See [PLAN.md](PLAN.md). Open issues at
+See [`CHANGELOG.md`](CHANGELOG.md) for release notes and open issues at
 <https://github.com/jpfielding/stlcg.ex/issues>.
+
+### Known limitations (v0.1.0)
+
+- Operator dispatch hardcodes **hard** min/max. The `Maxish`/`Minish`
+  aggregation kernels support soft (logsumexp), AGM, and
+  distributed-gradient modes, but the `scale` / `agm?` / `distributed?`
+  options on `STLCG.robustness/3` are not yet threaded through
+  temporal/logical operators — tracked as a follow-up.
+- Parity fixtures only exercise the hard regime. Soft / AGM /
+  distributed rows of the tolerance matrix are dead code pending the
+  above.
+- Upstream's `Integral1d` crashes on modern torch (conv2d rejects float
+  window sizes); validated via analytic cases in `test/integral_test.exs`
+  instead of Python fixtures.
 
 ## Attribution
 

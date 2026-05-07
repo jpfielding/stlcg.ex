@@ -66,8 +66,7 @@ defmodule STLCG.ParityTest do
           missing =
             fx.required_operators
             |> Enum.reject(&MapSet.member?(@implemented, &1))
-            |> Enum.map(&to_string/1)
-            |> Enum.join(", ")
+            |> Enum.map_join(", ", &to_string/1)
 
           ExUnit.configure(capture_log: false)
 
