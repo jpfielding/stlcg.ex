@@ -1,0 +1,59 @@
+{
+  "backend": "pytorch-cpu-fp32",
+  "dtype": "f32",
+  "expected_robustness": {
+    "data": [
+      0.0
+    ],
+    "shape": [
+      1,
+      1,
+      1
+    ]
+  },
+  "expected_trace": {
+    "data": [
+      0.0
+    ],
+    "shape": [
+      1,
+      1,
+      1
+    ]
+  },
+  "formula_ast": {
+    "lhs": "x",
+    "op": "LessThan",
+    "val": 0.0
+  },
+  "formula_id": "less_than_O1_c0.0",
+  "inputs": {
+    "x": {
+      "data": [
+        0.0
+      ],
+      "shape": [
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  "meta": {
+    "aggregation_modes": [
+      "hard"
+    ],
+    "depth": 1,
+    "oracle": "O1",
+    "regime": "hard_f32"
+  },
+  "opts": {
+    "agm": false,
+    "distributed": false,
+    "pscale": 1.0,
+    "scale": -1.0
+  },
+  "required_operators": [
+    "less_than"
+  ]
+}

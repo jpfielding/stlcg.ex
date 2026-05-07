@@ -26,10 +26,13 @@ data-dependent in ways `Nx.Defn` cannot express.
   This matches upstream's `_run_cell` output ordering. See
   `Temporal_Operator._run_cell` in upstream `src/stlcg.py`.
 
-- **Scalar robustness**: `STLCG.robustness(formula, inputs)` returns
-  `trace[..., time - 1, ...]` — the robustness at the *final* time step.
-  Equivalently: the full-trace robustness viewed from time 0 after
-  upstream's internal time-reversal convention.
+- **Terminal robustness**: `STLCG.robustness(formula, inputs)` returns
+  `trace[..., time - 1 .. time - 1, ...]` — the robustness at the *final*
+  time step, **keeping the time axis at size 1**. Shape is
+  `{batch, 1, features}`, matching upstream's
+  `robustness_trace[:, -(time+1):-(time)-0 or None, :]` slicing
+  convention (upstream returns shape `{batch, 1, features}` — the time
+  dim is preserved, not squeezed).
 
 ## 2. Intervals
 

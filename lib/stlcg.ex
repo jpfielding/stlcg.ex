@@ -109,13 +109,14 @@ defmodule STLCG do
 
   # The terminal slice is computed in plain Elixir (the shape is statically
   # known after the walker runs; this is just an index into the last time).
+  # Upstream keeps the time axis at size 1 — shape is {batch, 1, features}.
   defp terminal_slice(trace) do
     case Nx.shape(trace) do
       {_batch, time, _features} ->
-        trace |> Nx.slice_along_axis(time - 1, 1, axis: 1) |> Nx.squeeze(axes: [1])
+        Nx.slice_along_axis(trace, time - 1, 1, axis: 1)
 
       {_batch, time} ->
-        trace |> Nx.slice_along_axis(time - 1, 1, axis: 1) |> Nx.squeeze(axes: [1])
+        Nx.slice_along_axis(trace, time - 1, 1, axis: 1)
 
       _ ->
         trace

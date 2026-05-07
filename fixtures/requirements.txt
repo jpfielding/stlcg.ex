@@ -1,0 +1,4 @@
+torch==2.2.2
+numpy==1.26.4
+# Upstream stlcg.py unconditionally imports IPython (for display helpers).
+ipython==8.18.1

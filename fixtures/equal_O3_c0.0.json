@@ -1,0 +1,67 @@
+{
+  "backend": "pytorch-cpu-fp32",
+  "dtype": "f32",
+  "expected_robustness": {
+    "data": [
+      -1.0
+    ],
+    "shape": [
+      1,
+      1,
+      1
+    ]
+  },
+  "expected_trace": {
+    "data": [
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0
+    ],
+    "shape": [
+      1,
+      5,
+      1
+    ]
+  },
+  "formula_ast": {
+    "lhs": "x",
+    "op": "Equal",
+    "val": 0.0
+  },
+  "formula_id": "equal_O3_c0.0",
+  "inputs": {
+    "x": {
+      "data": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "shape": [
+        1,
+        5,
+        1
+      ]
+    }
+  },
+  "meta": {
+    "aggregation_modes": [
+      "hard"
+    ],
+    "depth": 1,
+    "oracle": "O3",
+    "regime": "hard_f32"
+  },
+  "opts": {
+    "agm": false,
+    "distributed": false,
+    "pscale": 1.0,
+    "scale": -1.0
+  },
+  "required_operators": [
+    "equal"
+  ]
+}

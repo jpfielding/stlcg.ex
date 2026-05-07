@@ -23,8 +23,9 @@ defmodule STLCG.FormulaTest do
 
   test "robustness/3 returns the terminal-time slice", ctx do
     r = STLCG.robustness(ctx.wrapped, %{"x" => ctx.x})
-    # Terminal slice preserves {batch, features} shape per semantics contract.
-    assert Nx.shape(r) == {1, 1}
+    # Terminal slice keeps the time axis at size 1: {batch, 1, features}
+    # per semantics contract (matches upstream).
+    assert Nx.shape(r) == {1, 1, 1}
     # wrapped negates, so final entry is -3.0
     assert Nx.to_flat_list(r) == [-3.0]
   end

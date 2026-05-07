@@ -113,6 +113,7 @@ defmodule STLCG.SpikeAutodiffTest do
 
     # The other entries should be 0.
     others = List.delete_at(flat, 3)
+
     assert Enum.all?(others, fn v -> abs(v) < 1.0e-8 end),
            "expected zero gradient on non-argmin indices, got #{inspect(others)}"
   end
